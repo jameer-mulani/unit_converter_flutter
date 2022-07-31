@@ -1,115 +1,174 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() => runApp(HomeScreen());
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class _HomeScreenState extends State<HomeScreen> {
+  final List<String> _measures = [
+    'meters',
+    'kilometers',
+    'grams',
+    'kilograms',
+    'feet',
+    'miles',
+    'pounds(lbs)',
+    'ounces',
+  ];
 
-  // This widget is the root of your application.
+  final Map<String, int> _measureMap = {
+    'meters': 0,
+    'kilometers': 1,
+    'grams': 2,
+    'kilograms': 3,
+    'feet': 4,
+    'miles': 5,
+    'pounds(lbs)': 6,
+    'ounces': 7,
+  };
+
+  final dynamic _conversionFormulas = {
+    '0': [1, 0.001, 0, 0, 3.28084, 0.000621371, 0, 0],
+    '1': [1000, 1, 0, 0, 3280.84, 0.621371, 0, 0],
+    '2': [0, 0, 1, 0.0001, 0, 0, 0.00220462, 0.035274],
+    '3': [0, 0, 1000, 1, 0, 0, 2.20462, 35.274],
+    '4': [0.3048, 0.0003048, 0, 0, 1, 0.000189394, 0, 0],
+    '5': [1609.34, 1.60934, 0, 0, 5280, 1, 0, 0],
+    '6': [0, 0, 453.592, 0.453592, 0, 0, 1, 16],
+    '7': [0, 0, 28.3495, 0.0283495, 3.28084, 0, 0.0625, 1],
+  };
+
+  late String _startMeasure;
+  late String _convertedMeasure;
+  double _numberFrom = 0;
+  String _resultMessage = "";
+
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
+  void initState() {
+    _startMeasure = _measures.first;
+    _convertedMeasure = _measures.first;
+    _numberFrom = 0;
+    super.initState();
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  final TextStyle inputTextStyle =
+      TextStyle(fontSize: 20, color: Colors.blue[900]);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+  final TextStyle lableStyle = TextStyle(fontSize: 24, color: Colors.grey[700]);
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
+  void _convert(double value, String from, String to) {
+    int? nFrom = _measureMap[from];
+    int? nTo = _measureMap[to];
+    var multiplier = _conversionFormulas[nFrom.toString()][nTo];
+    var result = value * multiplier;
+    if (result == 0) {
+      _resultMessage = "This conversion can not be performed";
+    } else {
+      _resultMessage =
+          "${_numberFrom.toString()} $from is ${result.toString()} $to";
+    }
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _resultMessage = _resultMessage;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Unit converter'),
+          backgroundColor: Colors.deepPurpleAccent,
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              Spacer(),
+              Text(
+                'Value',
+                style: lableStyle,
+              ),
+              Spacer(),
+              TextField(
+                style: inputTextStyle,
+                decoration: const InputDecoration(
+                    hintText: "Please insert the measure to be converted"),
+                onChanged: (value) {
+                  double? input = double.tryParse(value);
+                  if (input != null) {
+                    setState(() {
+                      _numberFrom = input;
+                    });
+                  }
+                },
+              ),
+              Spacer(),
+              Text(
+                'From',
+                style: lableStyle,
+              ),
+              DropdownButton(
+                  isExpanded: true,
+                  style: inputTextStyle,
+                  value: _startMeasure,
+                  items: _measures
+                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                      .toList(),
+                  onChanged: (v) {
+                    setState(() {
+                      _startMeasure = v as String;
+                    });
+                  }),
+              const Spacer(),
+              Text(
+                "To",
+                style: lableStyle,
+              ),
+              Spacer(),
+              DropdownButton(
+                  isExpanded: true,
+                  style: inputTextStyle,
+                  value: _convertedMeasure,
+                  items: _measures
+                      .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                      .toList(),
+                  onChanged: (v) {
+                    setState(() {
+                      _convertedMeasure = v as String;
+                    });
+                  }),
+              const Spacer(
+                flex: 2,
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  _convert(_numberFrom, _startMeasure, _convertedMeasure);
+                },
+                child: Text("Convert"),
+              ),
+              const Spacer(
+                flex: 2,
+              ),
+              Text(
+                _resultMessage,
+                style: lableStyle,
+              ),
+              Spacer(
+                flex: 8,
+              )
+            ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
